@@ -49,9 +49,6 @@ namespace AspnetCore.WebApp
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            // add console logging with the configured log levels from appsettings.json
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-
             // give some error details in debug mode
             if (env.IsDevelopment())
             {

@@ -48,6 +48,9 @@ namespace CacheManager.Redis
         /// <param name="strictCompatibilityModeVersion">
         /// Gets or sets a version number to eventually reduce the avaible features accessible by cachemanager.
         /// </param>
+        /// <param name="useSentinel"></param>
+        /// <param name="sentinelMasterName"></param>
+        /// <param name="tieBreaker"></param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Using it for configuration data only.")]
         public RedisConfiguration(
             string key,
@@ -60,7 +63,10 @@ namespace CacheManager.Redis
             bool allowAdmin = false,
             bool keyspaceNotificationsEnabled = false,
             bool twemproxyEnabled = false,
-            string strictCompatibilityModeVersion = null)
+            string strictCompatibilityModeVersion = null,
+            bool useSentinel = false,
+            string sentinelMasterName = "",
+            string tieBreaker = "")
         {
             NotNullOrWhiteSpace(key, nameof(key));
             NotNull(endpoints, nameof(endpoints));
@@ -81,9 +87,10 @@ namespace CacheManager.Redis
             KeyspaceNotificationsEnabled = keyspaceNotificationsEnabled;
             TwemproxyEnabled = twemproxyEnabled;
             StrictCompatibilityModeVersion = strictCompatibilityModeVersion;
-
+            UseSentinel = useSentinel;
+            SentinelMasterName = sentinelMasterName;
+            TieBreaker = tieBreaker;
             _configurationOptions = CreateConfigurationOptions();
-
             // is used later on as key in the connection lookup, and this object should be consistent no matter which ctor is used
             ConnectionString = _configurationOptions.ToString();
         }
@@ -119,6 +126,22 @@ namespace CacheManager.Redis
 
         private ConfigurationOptions CreateConfigurationOptions()
         {
+            var sentinelCommandMap = CommandMap.Create(new HashSet<string>()
+                    {
+                        "auth",
+                        "hello",
+                        "ping",
+                        "info",
+                        "role",
+                        "sentinel",
+                        "subscribe",
+                        "shutdown",
+                        "psubscribe",
+                        "unsubscribe",
+                        "punsubscribe",
+                        "script",
+                        "EVALSHA"
+                    });
             var configurationOptions = new ConfigurationOptions()
             {
                 AllowAdmin = AllowAdmin,
@@ -128,8 +151,14 @@ namespace CacheManager.Redis
                 SslHost = SslHost,
                 ConnectRetry = 10,
                 AbortOnConnectFail = false,
-                Proxy = TwemproxyEnabled ? Proxy.Twemproxy : Proxy.None
+                Proxy = TwemproxyEnabled ? Proxy.Twemproxy : Proxy.None,
+                ServiceName = SentinelMasterName,
+                CommandMap = UseSentinel ? sentinelCommandMap : CommandMap.Default,
             };
+            if (!string.IsNullOrWhiteSpace(TieBreaker))
+            {
+                configurationOptions.TieBreaker = TieBreaker;
+            }
 
             foreach (var endpoint in Endpoints)
             {
@@ -269,6 +298,21 @@ namespace CacheManager.Redis
         /// Gets or sets a value to indicate if Termproxy is being used.
         /// </summary>
         public bool TwemproxyEnabled { get; set; }
+
+        /// <summary>
+        /// for sentinel config
+        /// </summary>
+        public bool UseSentinel { get; }
+
+        /// <summary>
+        /// set tieBreaker to resolve split-brain
+        /// </summary>
+        public string TieBreaker { get; }
+
+        /// <summary>
+        /// sentinel Master Name
+        /// </summary>
+        public string SentinelMasterName { get; }
     }
 
     /// <summary>

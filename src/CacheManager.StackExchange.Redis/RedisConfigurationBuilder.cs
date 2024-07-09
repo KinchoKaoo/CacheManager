@@ -21,6 +21,10 @@ namespace CacheManager.Redis
         private bool _enabledKeyspaceNotifications = false;
         private string _useVersion;
         private bool _useTwemproxy;
+        private bool _useSentinel = false;
+        private string _sentinelMasterName = string.Empty;
+        private string _tieBreaker = string.Empty;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisConfigurationBuilder"/> class.
@@ -51,7 +55,10 @@ namespace CacheManager.Redis
                 allowAdmin: _allowAdmin,
                 keyspaceNotificationsEnabled: _enabledKeyspaceNotifications,
                 twemproxyEnabled: _useTwemproxy,
-                strictCompatibilityModeVersion: _useVersion);
+                strictCompatibilityModeVersion: _useVersion,
+                useSentinel: _useSentinel,
+                sentinelMasterName: _sentinelMasterName,
+                tieBreaker: _tieBreaker);
 
         /// <summary>
         /// Enable the flag to have CacheManager react on keyspace notifications from redis.
@@ -146,6 +153,38 @@ namespace CacheManager.Redis
         public RedisConfigurationBuilder WithPassword(string serverPassword)
         {
             _password = serverPassword;
+            return this;
+        }
+
+        /// <summary>
+        /// set use sentinel
+        /// </summary>
+        /// <returns></returns>
+        public RedisConfigurationBuilder WithSentinel()
+        {
+            _useSentinel = true;
+            return this;
+        }
+
+        /// <summary>
+        /// set tieBreaker
+        /// </summary>
+        /// <param name="breaker"></param>
+        /// <returns></returns>
+        public RedisConfigurationBuilder WithTieBreaker(string breaker)
+        {
+            _tieBreaker = breaker;
+            return this;
+        }
+
+        /// <summary>
+        /// set sentinel master name
+        /// </summary>
+        /// <param name="sentinelMasterName"></param>
+        /// <returns></returns>
+        public RedisConfigurationBuilder WithSentinelMasterName(string sentinelMasterName)
+        {
+            _sentinelMasterName = sentinelMasterName;
             return this;
         }
 

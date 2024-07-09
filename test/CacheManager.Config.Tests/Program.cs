@@ -66,7 +66,7 @@ namespace CacheManager.Config.Tests
                     var redisHandle = cacheA.CacheHandles.OfType<RedisCacheHandle<string>>().First();
                     foreach (var server in redisHandle.Servers)
                     {
-                        Console.WriteLine($"{server.ToString()}=>{server.EndPoint} connected:{server.IsConnected} isSlave:{server.IsSlave}");
+                        Console.WriteLine($"{server.ToString()}=>{server.EndPoint} connected:{server.IsConnected} isSlave:{server.IsReplica}");
                     }
 
                     try

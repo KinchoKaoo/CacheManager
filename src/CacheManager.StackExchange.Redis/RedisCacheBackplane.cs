@@ -136,7 +136,7 @@ namespace CacheManager.Redis
                 try
                 {
                     _source.Cancel();
-                    _connection.Subscriber.Unsubscribe(_channelName);
+                    _connection.Subscriber.Unsubscribe(new RedisChannel(_channelName, RedisChannel.PatternMode.Literal));
                     _timer.Dispose();
                 }
                 catch
@@ -149,7 +149,7 @@ namespace CacheManager.Redis
 
         private void Publish(byte[] message)
         {
-            _connection.Subscriber.Publish(_channelName, message, CommandFlags.None);
+            _connection.Subscriber.Publish(new RedisChannel(_channelName, RedisChannel.PatternMode.Literal), message, CommandFlags.None);
         }
 
         private void PublishMessage(BackplaneMessage message)
@@ -251,7 +251,7 @@ namespace CacheManager.Redis
         private void Subscribe()
         {
             _connection.Subscriber.Subscribe(
-                _channelName,
+                new RedisChannel(_channelName, RedisChannel.PatternMode.Literal),
                 (channel, msg) =>
                 {
                     try

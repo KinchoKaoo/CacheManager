@@ -167,7 +167,7 @@ return result";
                 }
 
                 var count = 0;
-                foreach (var server in Servers.Where(p => !p.IsSlave && p.IsConnected))
+                foreach (var server in Servers.Where(p => !p.IsReplica && p.IsConnected))
                 {
                     count += (int)server.DatabaseSize(_redisConfiguration.Database);
                 }
@@ -210,7 +210,7 @@ return result";
         {
             try
             {
-                foreach (var server in Servers.Where(p => !p.IsSlave))
+                foreach (var server in Servers.Where(p => !p.IsReplica))
                 {
                     Retry(() =>
                     {
@@ -677,7 +677,7 @@ return result";
         private void SubscribeKeyspaceNotifications()
         {
             _connection.Subscriber.Subscribe(
-                 $"__keyevent@{_redisConfiguration.Database}__:expired",
+                    new RedisChannel($"__keyevent@{_redisConfiguration.Database}__:expired", RedisChannel.PatternMode.Literal),
                  (channel, key) =>
                  {
                      var tupple = ParseKey(key);
@@ -691,7 +691,7 @@ return result";
                  });
 
             _connection.Subscriber.Subscribe(
-                $"__keyevent@{_redisConfiguration.Database}__:evicted",
+                new RedisChannel($"__keyevent@{_redisConfiguration.Database}__:evicted", RedisChannel.PatternMode.Literal),
                 (channel, key) =>
                 {
                     var tupple = ParseKey(key);
@@ -705,7 +705,7 @@ return result";
                 });
 
             _connection.Subscriber.Subscribe(
-                $"__keyevent@{_redisConfiguration.Database}__:del",
+                new RedisChannel($"__keyevent@{_redisConfiguration.Database}__:del", RedisChannel.PatternMode.Literal),
                 (channel, key) =>
                 {
                     var tupple = ParseKey(key);
